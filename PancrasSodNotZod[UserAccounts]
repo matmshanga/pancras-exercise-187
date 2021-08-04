@@ -1,0 +1,170 @@
+package edu.cpt187.pancras.exercise6;
+
+import java.io.FileInputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+import java.util.Scanner;
+
+//AUTHOR: [MATRONA PANCRAS]
+//COURSE: CPT187
+//PURPOSE: [To provide access control to users informations]
+//PURPOSE: [to only viewed by authorized user]
+//STARTDATE: [07/21/2021] 
+
+public class UserAccounts 
+{
+	//declare and initialize all class attributes
+	private final int NOT_FOUND = -1;
+	private final int RESET_VALUE = 0;
+	private final int MAXIMUM_RECORDS = 50;
+	private String[] userNames = new String[MAXIMUM_RECORDS];
+	private String[] passwords = new String[MAXIMUM_RECORDS];
+	private String masterFileName = "";
+	private int recordCount = 0;
+	private int searchedIndex = 0;
+
+	//constructor//
+
+	//non default constructor
+	public UserAccounts(String borrowedFileName) 
+	{
+		masterFileName = borrowedFileName;
+	}//END OF non default constructor
+
+	//setters//
+
+	//this behavior will assign the value to the set account array
+	public void setUserAccountArrays()
+	{
+		//try block
+		try 
+		{
+			//create one instance from the scanner class using an instantiation statement
+			Scanner infile = new Scanner (new FileInputStream(masterFileName));
+
+			//Assignment statement to assign RESET_VALUE to the record count
+			recordCount = RESET_VALUE;
+			//repetition structure to process each record in the file
+			//.hasNext() will false if the next value is EOF
+			while (infile.hasNext() == true && recordCount < MAXIMUM_RECORDS)
+				//while (infile.hasNext() == false || recordCount < MAX_RECORDS)
+			{
+				//assignment statement to assign values to array elements
+				userNames[recordCount] = infile.next();//assign next String to variables
+				passwords[recordCount] = infile.next();//assign next String to variables
+				//modify LCV
+				recordCount++;
+			}//END OF repetition structure to process each record in the file
+
+			//close the scanner/File
+			infile.close();
+		} //END OF try
+		//catch block 
+		catch (IOException ex) 
+		{
+			//if try has problem, set the |error| flag
+			recordCount = NOT_FOUND;
+		}//END OF catch	
+	}//END OF setLoadItems
+
+	//this behavior will assign the value to the search index
+	public void setSearchedIndex(String borrowedUserName)
+	{
+		searchedIndex = getSeqSearch(borrowedUserName);
+	}//END OF setSearchIndex
+
+	//this behavior will assign the value to the searched index
+	public void setSearchedIndex(String borrowedUserName, String borrowedPassword)
+	{
+		//assignment statement
+		searchedIndex = getSeqSearch(borrowedUserName);
+		//selection structure to test searcheIndex
+		if(searchedIndex >= RESET_VALUE && getPasswordMatch(borrowedPassword) == false)
+		{
+			searchedIndex = NOT_FOUND;
+		}//END OF if selection structure to test searcheIndex	
+	}//END OF setSearchedIndex
+
+	//this behavior will add new value to existing file
+	public void	setWriteOneRecord(String borrowedUserName, String borrowedPassword)
+	{
+		//try block - tires to open a file and continues ONLY if the file is opened
+		try 
+		{
+
+			//this instantiation statement will attempt to open the file
+			PrintWriter masterFilePW = new PrintWriter (new FileWriter(masterFileName, true));
+
+			//if the file is found and opened successful, the remain try block code is executed
+			//this print statement writes the borrowed values to the file, separated by tabs
+			masterFilePW.printf("%n%s\t%s", borrowedUserName, borrowedPassword);
+
+			//close the PrintWriter/File
+			masterFilePW.close();
+		} //END OF try
+		//catch block 
+		catch (IOException ex) 
+		{
+			//if try has problem, set the |error| flag
+			recordCount = NOT_FOUND;
+		}//END OF catch	
+	}//END OF setWriteOneRecord
+
+	//getters//
+
+	//this behavior will return the value of seqSearch
+	public int getSeqSearch(String borrowedBorrowedUserName)
+	{
+		// declare and initialize  local variable
+		int localIndex = 0;
+		int localFound = NOT_FOUND;
+		//repetition structure to run through array
+		while(localIndex < recordCount)
+		{
+			if(borrowedBorrowedUserName.equalsIgnoreCase(userNames[localIndex]))
+			{
+				//assignment statement
+				localFound = localIndex;
+				localIndex = recordCount;
+			}//END OF if
+			else 
+			{
+				//modify LVC
+				localIndex++;
+			}//END OF else
+		}//END OF repetition structure to run through array
+		return localFound;
+	}//END OF getSeqSearch
+
+	//this behavior will return the value of get password
+	public boolean getPasswordMatch(String borrowedBorrowedPassword) 
+	{		
+		return passwords[searchedIndex].equals(borrowedBorrowedPassword);	
+	}//END OF  get password
+
+	//this behavior will  get File name
+	public String getFileName()
+	{
+		return masterFileName;//return value to the calling method
+	}//END OF getFileName
+
+	//getter return the value of getMaxRecordS
+	public int getMaximumRecords()
+	{
+		return MAXIMUM_RECORDS;//return value to the calling method
+	}//END OF getMaxRecordS
+
+	//this behavior will return the value of record counts
+	public int getRecordCount()
+	{
+		return recordCount; //return value to the calling method
+	}//END OF getIRecordCount
+
+	//this behavior will return the value of getSearchIndex		
+	public int getSearchIndex()
+	{
+		return searchedIndex; //return value to the calling method	
+	}//END OF getSearchIndex
+
+}//END OF Class UserAccount
