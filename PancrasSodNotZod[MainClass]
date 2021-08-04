@@ -1,0 +1,625 @@
+package edu.cpt187.pancras.exercise6;
+
+import java.util.Scanner;
+
+//AUTHOR: [MATRONA PANCRAS]
+//COURSE: CPT187
+//PURPOSE: [To determine the type of item ordered based on discount type criteria]
+//PURPOSE: [and display total transaction to print the receipt]
+//STARTDATE: [07/21/2021] 
+
+public class MainClass
+{
+	//declare and initialize all class constants
+	public static final char[] MENU_CHARS = {'A', 'B', 'Q'};
+	public static final String[]  MENU_OPTIONS = {"Login", "Create an Account", "Quit"};
+	public static final char[] FILE_MENU_CHARS = {'A', 'B', 'R'};
+	public static final String[]  FILE_MENU_OPTIONS = {"Load Inventory", "Create Order",
+	"Return to Main Menu"};
+	public static final char[] SUB_MENU_CHARS = {'A', 'B', 'C', 'D'};
+	public static final String  INVENTORY_FILE_NAME = "MasterInventoryFile.dat";
+	public static final String  ACCOUNTS_FILE_NAME = "MasterUserFile.dat";
+
+	//main method
+	public static void main(String[] args) 
+	{
+		///create one instance from the supportive class using and instantiation statement
+		Inventory currentInventory = new Inventory();
+
+		//create one instance from the supportive class using and instantiation statement
+		Order currentOrder = new Order();
+
+
+		//create one instance from the supportive class using and instantiation statement
+		WriteOrder orders = new WriteOrder(INVENTORY_FILE_NAME);
+
+		//create one instance from the supportive class using and instantiation statement
+		UserAccounts currentUser = new UserAccounts(ACCOUNTS_FILE_NAME);
+
+		// declare and initialize the scanner
+		Scanner input = new Scanner(System.in);
+
+		//declare and initialize all local variables
+		String userName = "";
+		char menuSelection = ' ';
+
+		//display welcome banner
+		displayWelcomeBanner();
+
+		//prime read for main menu
+		menuSelection = validateMenuSelection(input);
+
+		//run-while !NOT QUIT LOOP
+		while(menuSelection !='Q')
+		{
+			//set user account
+			currentUser.setUserAccountArrays();
+			//get and validate user name
+			userName = getUserName(input);
+
+			//selection structure to test main menu selection
+			if(menuSelection != 'A')
+			{
+				//set searched index
+				currentUser.setSearchedIndex(userName);
+				//selection structure to test searched index
+				if(currentUser.getSearchIndex() >= 0)
+				{
+					//display account results
+					displayAccountResults(userName);
+				}//END OF if selection structure to test searched index
+
+				//last option selection structure to test searched index
+				else
+				{
+					//set write one record
+					currentUser.setWriteOneRecord(userName, getPassword(input));
+					//display account results
+					displayAccountResults();
+				}//END OF else last option selection structure to test searched index	
+			}//END OF if selection structure to test main menu selection
+
+			//Last option  selection structure to test main menu selection
+			else
+			{
+				//set searched index
+				currentUser.setSearchedIndex(userName, getPassword(input));
+				//selection structure to test searched index
+				if(currentUser.getSearchIndex() < 0)
+				{
+					//display login error
+					displayLoginError();
+				}//END OF if selection structure to test searched index
+				//Last option selection structure to test searched index
+				else
+				{
+					//pass and validate  file menu selection
+					menuSelection = validateFileSelection(input);
+
+					//Repetition structure for menu selection
+					while(menuSelection != 'R')
+					{
+						//selection structure for menu selection
+						if(menuSelection == 'A')
+						{
+							//set load items
+							currentInventory.setLoadItems(getFileName(input));
+							//selection structure to test record count
+							if(currentInventory.getRecordCount() <= 0)
+							{
+								//display file error
+								displayFileError();
+							}//END OF if selection structure to test record count
+							//last option selection structure to test record count
+							else
+							{
+								//display record report
+								displayRecordReport(currentInventory.getRecordCount());
+							}//END OF else last option selection structure to test record count
+
+						}//END OF if selection structure for menu selection
+						//last option selection structure for menu selection
+						else
+						{
+							//get and validate searched index
+							currentInventory.setSearchIndex(validateSearchValue(input));
+							//selection structure to test item searched index
+							if(currentInventory.getItemSearchIndex() < 0)
+							{
+								//display not found
+								displayNotFound();
+							}//END OF if selection structure to test item searched index
+							//last option selection structure to test item searched index
+							else
+							{
+								//set item selected index
+								currentOrder.setLastItemSelectedIndex(currentInventory.getItemSearchIndex());
+								//set itemID
+								currentOrder.setItemID(currentInventory.getItemIDs());
+								//set item price
+								currentOrder.setItemPrice(currentInventory.getItemPrices());
+								//set item name
+								currentOrder.setItemName(currentInventory.getItemNames());
+								//
+								currentOrder.setHowMany(validateHowMany(input));
+
+								//selection structure to test in stock counts
+								if(currentOrder.getInStockCount(currentInventory.getInStockCounts())
+										< currentOrder.getHowMany())
+								{
+									//display out of stocks
+									displayOutOfStock();
+								}//END OF if selection structure to test in stock counts
+								//last option selection structure to test in stock counts
+								else
+								{
+									//pass validated value to the setter in the supportive class
+									currentOrder.setDiscountType(validateDiscountMenu(input, currentInventory.getDiscountNames(),
+											currentInventory.getDiscountRates()));
+									//set discount name
+									currentOrder.setDiscountName(currentInventory.getDiscountNames());
+									//set discount rate
+									currentOrder.setDiscountRate(currentInventory.getDiscountRates());
+									//set decrease in stock
+									currentOrder.setDecreaseInStock(currentInventory);
+									//set prize
+									currentOrder.setPrizeName(currentInventory.getPrizeNames(), 
+											currentInventory.getRandomNumber());
+									//set write order
+									orders.setWriteOrder(currentOrder.getItemID(), currentOrder.getItemName(),
+											currentOrder.getItemPrice(), currentOrder.getHowMany(), currentOrder.getTotalCost());
+
+									//selection structure to test discount rate
+									if(currentOrder.getDiscountRate() > 0.0)
+									{
+										//display report order WITH discount
+										displayOrderReport(userName, currentOrder.getItemName(), currentOrder.getItemPrice(),
+												currentOrder.getHowMany(), currentOrder.getDiscountName(), currentOrder.getDiscountRate(),
+												currentOrder.getDiscountAmt(),currentOrder.getDiscountPrice(), currentOrder.getSubTotal(),
+												currentOrder.getTaxRate(), currentOrder.getTaxAmt(), currentOrder.getTotalCost(),
+												currentOrder.getPrizeName(), currentOrder.getInStockCount(currentInventory.getInStockCounts()));
+									}//END OF if selection structure to test discount rate
+									//last option selection structure to test discount rate
+									else
+									{
+										//display report order WITHOUT discount
+										displayOrderReport(userName, currentOrder.getItemName(), currentOrder.getItemPrice(),
+												currentOrder.getHowMany(), currentOrder.getSubTotal(), currentOrder.getTaxRate(),
+												currentOrder.getTaxAmt(), currentOrder.getTotalCost(), currentOrder.getPrizeName(),
+												currentOrder.getInStockCount(currentInventory.getInStockCounts()));
+									}//END OF else last option selection structure to test discount rate
+
+								}//END OF else last option selection structure to test in stock counts
+
+							}//END OF else selection structure to test item searched index
+						}//END OF else last option selection structure for menu selection
+
+						//updates read for file menu
+						menuSelection = validateFileSelection(input);
+					}//END OF repetition structure for menu selection
+				}//END OF else last option selection structure to test searched index
+			}//END OF else Last option  selection structure to test main menu selection
+
+			//update read for main menu
+			menuSelection = validateMenuSelection(input);
+
+		}//END OF the run-while
+
+		// set load item to get file name
+		currentInventory.setLoadItems(orders.getFileName(), orders.getRecordCount());
+
+		//selection structure to test menu selection if the order has the records
+		while(orders.getRecordCount() > 0)
+		{
+			//pass values from getter in the supportive class to the void method that displays the final report
+			displayFinalReport(currentInventory.getItemIDs(), currentInventory.getItemNames(), 
+					currentInventory.getItemPrices(),currentInventory.getOrderQuantities(), 
+					currentInventory.getOrderTotals(), currentInventory.getRecordCount(),
+					currentInventory.getGrandTotal());
+		}//END OF if selection structure to test menu selection if the order has the records
+
+		//display the farewell message
+		displayFarewellMessage();
+
+		//close scanner
+		input.close();
+
+	}//END OF the main method
+
+
+	//void methods
+
+	//void method to display the welcome banner
+	public static void displayWelcomeBanner()
+	{
+		//display welcome banner
+		System.out.println("Welcome to our Marketing sales  program!");
+		System.out.println("This program will help you understand the discount");
+		System.out.println("of each item and calculate all the total transaction.");
+		System.out.println("**********************************************\n");	
+	}//END OF method to display welcome banner
+
+	//void method to display fareWell message
+	public static void displayFarewellMessage() 
+	{
+		System.out.print("************************************\n");	
+		System.out.println("Thank you for your bussness!.");
+		System.out.println("Hope to see you again.");
+		System.out.println("Have a great day.");
+		System.out.println("*************************************\n");
+	}//END OF void method to display fareWell message
+
+	//void method to display main menu
+	public static void displayMainMenu()
+	{
+		//Declare and initialize all local variables
+		int localIndex = 0;
+		//display menu title
+		System.out.println("\n*** **** ***** **** ****");//line border
+		System.out.println("MAIN MENU");
+		//while to run through the array - from first index(localIndex = 0) to the last index( < .length)
+		while (localIndex < MENU_OPTIONS.length)
+		{
+			//display menu option - char and option description
+			System.out.printf("%-1s%2s%-2s\n", MENU_CHARS[localIndex], " for ",  MENU_OPTIONS[localIndex]);
+			//increment LCV
+			localIndex++;
+		}//END OF print loop
+		//display menu prompt
+		System.out.println("*** **** ***** **** ****");//line border
+		System.out.print("\nEnter main selection here: ");	
+	}//END OF displayMainMenu
+
+	//void method to display file menu
+	public static void displayFileMenu()
+	{
+		//Declare and initialize all local variables
+		int localIndex = 0;
+		//display menu title
+		System.out.println("\n*** **** ***** **** ****");//line border
+		System.out.println("FILE MENU");
+		//while to run through the array - from first index(localIndex = 0) to the last index( < .length)
+		while (localIndex < FILE_MENU_OPTIONS.length)
+		{
+			//display file menu option - char and option description
+			System.out.printf("%-1s%2s%-2s\n", FILE_MENU_CHARS[localIndex], " for ",  FILE_MENU_OPTIONS[localIndex]);
+			//increment LCV
+			localIndex++;
+		}//END OF print loop
+		//display menu prompt
+		System.out.println("*** **** ***** **** ****");//line border
+		System.out.print("\nEnter file selection here: ");	
+	}//END OF displayFileMenu
+
+	//void method to display discount menu
+	public static void displayDiscountMenu(String[] borrowedDiscountNames, double[] borrowedDiscountRates)
+	{
+		//Declare and initialize all local variables
+		int localIndex = 0;
+		//display discount menu title
+		System.out.println("\n*** **** ***** **** ****");//line border
+		System.out.println("DISCOUNT MENU");
+		//while to run through the array - from first index(localIndex = 0) to the last index( < .length)
+		while (localIndex < borrowedDiscountNames.length)
+		{
+			//display menu option - char, name, rate
+			System.out.printf("%-2s%1s%-13s%8s%1s\n",  SUB_MENU_CHARS[localIndex], "for ",
+					borrowedDiscountNames[localIndex], (borrowedDiscountRates[localIndex] * 100), "%");
+			//increment LCV
+			localIndex++;
+		}//END OF print loop
+		//display menu prompt
+		System.out.println("\n*** **** ***** **** ****");//line border
+		System.out.print("\nEnter discount selection here: ");	
+	}//END OF displayDiscountMenu
+
+	//void method to display account results
+	public static void displayAccountResults() 
+	{
+		//display title
+		System.out.println("\n" + "ACCOUNT RESULTS");
+		//display account result
+		System.out.println("\nNew account created");
+		System.out.println("*** **** ***** **** ****");//line border
+	}//END OF display account results
+
+
+	//void method to display account results
+	public static void displayAccountResults(String userName) 
+	{
+		//display title
+		System.out.println("\n" + "ACCOUNT RESULTS");
+		//display account result
+		System.out.println("\nAccount not created: " + userName + " already exists");
+		System.out.println("*** **** ***** **** ****");//line border			
+	}//END OF display account results
+
+	//void method to display login error
+	public static void displayLoginError() 
+	{
+		//display title
+		System.out.println("\n" + "LOGIN ERROR");
+		//display error message
+		System.out.println("\nUsername and/or Password is incorrect");
+		System.out.println("*** **** ***** **** ****");//line border		
+	} //END OF display login error
+
+	//void method to display record report
+	public static void displayRecordReport(int borrowedRecordCount) 
+	{
+		//display title
+		System.out.println("\n" + "RECORD REPORT");
+		System.out.printf("%-10s%6s\n", borrowedRecordCount, "records processed");	
+	}//END OF display record report
+
+	//void method to display out of stock
+	public static void displayOutOfStock() 
+	{
+		//display Out Of Stock report
+		System.out.println("\n" + "OUT OF STOCK ERROR");
+		System.out.println("\nThe guantity entered is greater than the quantity in-stock");
+		System.out.println("*** **** ***** **** ****");//line border			
+	}//END OF display out of stock
+
+	//void method to display file error
+	public static void displayFileError() 
+	{
+		//display title
+		System.out.println("\n" + "FILE ERROR");
+		//display file error
+		System.out.println("\nThe file named was not found or could not be opened");
+		System.out.println("*** **** ***** **** ****");//line border		
+	}//END OF display file error
+
+	//void method to display not found
+	public static void displayNotFound() 
+	{
+		//display title
+		System.out.println("\n" + "NOT FOUND ERROR");
+		//display  error message
+		System.out.println("\nThe search value entered was not found");
+		System.out.println("*** **** ***** **** ****");//line border			
+	}//END OF  display not found
+
+	//void method to display order report
+	public static void displayOrderReport(String userName, String borrowedItemName, double borrowedItemPrice,
+			int borrowedHowMany, String borrowedDiscountName, double borrowedDiscountRate, double borrowedDiscountAmt,
+			double borrowedDiscountPrice, double borrowedSubTotal, double borrowedTaxRate, double borrowedTaxAmt,
+			double borrowedTotalCost, String borrowedPrizeName, int borrowedInStockCount)
+	{
+		// display order report
+		System.out.println("\n" + "ORDER REPORT");//title	
+		//report border
+		System.out.println("*** **** ***** **** ****");
+		//report details
+		System.out.printf("%-20s%-5s\n", "Customer Name: ", userName);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s\n", "Item Name: ", borrowedItemName);
+		System.out.printf("%-20s%-5s%6.2f\n", "Item Price:", "$", borrowedItemPrice);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s\n", "Discount Name: ",  borrowedDiscountName);
+		System.out.printf("%-20s%-5s%5.1f%1s\n", "Discount Rate:", "", borrowedDiscountRate * 100, "%");
+		System.out.printf("%-20s%-5s%6.2f\n", "Discount Amount:", "$", borrowedDiscountAmt);
+		System.out.printf("%-20s%-5s%6.2f\n", "Discounted Price:", "$", borrowedDiscountPrice);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.1s\n", "Quantity", "", borrowedHowMany);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.2f\n", "Subtotal:", "$", borrowedSubTotal);
+		System.out.printf("%-20s%-5s%5.1f%1s\n", "Tax Rate:", "", borrowedTaxRate * 100, "%");
+		System.out.printf("%-20s%-5s%6.2f\n", "Tax Amount:", "$", borrowedTaxAmt);
+		System.out.printf("%-20s%-5s%6.2f\n", "Order Total:", "$", borrowedTotalCost);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s\n", "Prize Name:", borrowedPrizeName);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%-2s%3s\n", "Buy more now:", "Only", borrowedInStockCount, " left in stock");
+		System.out.println("*** **** ***** **** **** *** ***\n");	//print report border	
+	}//END OF display order report
+
+	//void method to display order report
+	public static void displayOrderReport(String userName, String borrowedItemName, double borrowedItemPrice,
+			int borrowedHowMany, double borrowedSubTotal, double borrowedTaxRate, double borrowedTaxAmt, 
+			double borrowedTotalCost, String borrowedPrizeName, int borrowedInStockCount)
+	{
+		// display order report
+		System.out.println("\n" + "ORDER REPORT");//title	
+		//report border
+		System.out.println("*** **** ***** **** ****");
+		//report details
+		System.out.printf("%-20s%-5s\n", "Customer Name: ", userName);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s\n", "Item Name: ", borrowedItemName);
+		System.out.printf("%-20s%-5s%6.2f\n", "Item Price:", "$", borrowedItemPrice);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.1s\n", "Quantity", "", borrowedHowMany);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.2f\n", "Subtotal:", "$", borrowedSubTotal);
+		System.out.printf("%-20s%-5s%5.1f%1s\n", "Tax Rate:", "", borrowedTaxRate * 100, "%");
+		System.out.printf("%-20s%-5s%6.2f\n", "Tax Amount:", "$", borrowedTaxAmt);
+		System.out.printf("%-20s%-5s%6.2f\n", "Order Total:", "$", borrowedTotalCost);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s\n", "Prize Name:", borrowedPrizeName);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%2s%-2s\n", "Buy more now:", "Only", borrowedInStockCount, "  left in stock");
+		System.out.println("*** **** ***** **** **** *** ***\n");	//print report border
+	}//END OF display order report
+
+	//void method to display final report
+	public static void displayFinalReport(int[] borrowedItemIDs, String[] borrowedItemNames, double[] borrowedItemPrices,
+			int[] borrowedOrderQuantities, double[] borrowedOrderTotals, int borrowedRecordCount, double borrowedGrandTotal) 
+	{
+		//declare and initialize all local variables
+		int localIndex = 0;
+		//report title
+		System.out.println("\n*** **** ***** **** ****");//print report border
+		System.out.println ("FINAL REPORT");
+		System.out.println("*** **** ***** **** ****");//print report border
+		//report details
+		//while to run through the array - from first index(localIndex = 0) to the last index( < .length)
+		while(localIndex < borrowedItemIDs.length)
+		{
+			//statement to display element in the array
+			System.out.printf("%-10s%6s%10s%8s%8s\n","ID", "NAME", "PRICE", "QTY", "TOTAL");
+			System.out.printf("%-10s%6s%10.2f%8d%8.2f\n",borrowedItemIDs[localIndex],borrowedItemNames[localIndex],
+					borrowedItemPrices[localIndex], borrowedOrderQuantities[localIndex],borrowedOrderTotals);
+			//increment LCV
+			localIndex++;
+		}//END OF while to run through the array
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.2f\n", "Order Total:", "$", borrowedGrandTotal);
+		System.out.println();//add new line to console
+		System.out.printf("%-20s%-5s%6.1s\n", "Quantity", "", borrowedRecordCount);
+	}//END OF display final report.
+
+	//VR methods section
+
+	//VR method to validate the selection from main menu
+	public static char validateMenuSelection(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		char localSelection = ' ';
+		//display main menu
+		displayMainMenu();
+		//assignment statement
+		localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		//repetition structure
+		//validation loop for main menu
+		while (localSelection != 'A' &&  localSelection != 'B' && localSelection != 'Q' )
+		{
+			//display error message
+			System.out.println("\n~~~~~Invalid selection~~~~~~~");
+			//display main menu
+			displayMainMenu();
+			//assignment statement
+			localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}//END OF validation loop for main menu	
+		return localSelection;
+	}//END OF the method to validate the selection from main menu
+
+
+	//VR method to get and validate user name
+	public static String getUserName(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		String localUserName = "";
+		//prompts user for their name
+		System.out.print("\nEnter your username: ");
+		//assignment statement
+		localUserName = borrowedInput.next();
+		return localUserName;
+	}//END OF get user name
+
+
+	//VR method to get and validate password 
+	public static String getPassword(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		String localPassword = "";
+		//prompts user for their name
+		System.out.print("\nEnter your password: ");
+		//assignment statement
+		localPassword = borrowedInput.next();
+		return localPassword;
+	}//END OF  get password 
+
+	//VR method to validate the selection from file menu
+	public static char validateFileSelection(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		char localSelection = ' ';
+		//display main menu
+		displayFileMenu();
+		//assignment statement
+		localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		//repetition structure
+		//validation loop for main menu
+		while (localSelection != 'A' &&  localSelection != 'B' && localSelection != 'R' )
+		{
+			//display error message
+			System.out.println("\n~~~~~Invalid selection~~~~~~~");
+			//display main menu
+			displayFileMenu();
+			//assignment statement
+			localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}//END OF validation loop for main menu	
+		return localSelection;
+	}//END OF validation file menu
+
+	//VR method to get and validate file name
+	public static String getFileName(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		String localFileName = "";
+		System.out.print("\nEnter the file name with extension \n");
+		localFileName = borrowedInput.next();
+		return localFileName;
+	}//END OF getFileName
+
+	//VR method to get and validate file name
+	public static int validateSearchValue(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		int localSearchValue = 0;
+		System.out.print("\nPlease enter the search value: \n");
+		//assignment statement
+		localSearchValue = borrowedInput.nextInt();
+		//validation loop for search value
+		while (localSearchValue < 0)
+		{
+			//print error message
+			System.out.print("\nThe search value entered was not found \n");
+			//prompts users for the search value
+			System.out.print("\nPlease enter the search value: ");
+			//assignment statement
+			localSearchValue = borrowedInput.nextInt();
+		}//END OF validation loop for search value
+		return localSearchValue;	
+	}//END OF validation search value
+
+	//VR method to get and validate how many
+	public static String validateHowMany(Scanner borrowedInput) 
+	{
+		//declare and initialize local variables
+		String localHowMany = "";
+		//prompts user for quantity
+		System.out.print("\nHow many Items you need? ");
+		//assignment statement
+		localHowMany = borrowedInput.next();
+		//Must validate input 
+		while (Integer.parseInt(localHowMany) <= 0)
+		{
+			//print error message - single line
+			System.out.println("\n~~~Invalid quantity~~~");
+			//update read	
+			System.out.print("\nPlease, enter the quantity: ");
+			localHowMany = borrowedInput.next();
+			System.out.println();
+		}//END OF validate loop
+		return localHowMany;
+	}//END OF validate how many
+
+	//VR method to get and validate discount menu
+	public static char validateDiscountMenu(Scanner borrowedInput, String[]
+			borrowedDiscountNames, double[] borrowedDiscountRates) 
+	{
+		//declare and initialize local variables
+		char localSelection = ' ';
+		// display discount menu
+		displayDiscountMenu(borrowedDiscountNames, borrowedDiscountRates);
+		//assignment statement
+		localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		//repetition structure
+		//validation loop for discount menu
+		while (localSelection != 'A' && localSelection != 'B' && 
+				localSelection != 'C'&& localSelection != 'D')
+		{
+			//print error message - single line
+			System.out.println("\n~~~Invalid selection~~~\n");
+			// display discount menu
+			displayDiscountMenu(borrowedDiscountNames, borrowedDiscountRates);
+			//assignment statement
+			localSelection = borrowedInput.next().toUpperCase().charAt(0);
+		}//END OF the validate loop
+		return localSelection;
+	}//END OF validate discount menu
+
+}//END OF Class Main
