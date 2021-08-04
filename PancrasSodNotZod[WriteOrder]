@@ -1,0 +1,78 @@
+package edu.cpt187.pancras.exercise6;
+
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
+
+//AUTHOR: [MATRONA PANCRAS]
+//COURSE: CPT 187
+//PURPOSE: [Provides items details in an organized way and ensure the items can be accessed]
+//PURPOSE: [and also help to identify the items on trends that help in improving sales]
+//STARTDATE: [07/21/2021]
+
+public class WriteOrder
+{
+	//declare and initialize all  attributes
+	private boolean fileFoundFlag = false;
+	private String masterFileName = "";
+	private int recordCount = 0;
+	//constructor//
+
+	//non default constructor
+	public WriteOrder(String borrowedFileName) 
+	{
+		masterFileName = borrowedFileName;
+	}//END OF non default constructor
+
+	//setters//
+
+	//this behavior will add new value to existing file
+	public void	setWriteOrder(int borrowedItemID, String borrowedItemName, 
+			double borrowedItemPrice, int borrowedQuantity, double borrowedOrderCost)
+	{
+		//try block - tires to open a file and continues ONLY if the file is opened
+		try 
+		{
+
+			//this instantiation statement will attempt to open the file
+			PrintWriter filePW = new PrintWriter (new FileWriter(masterFileName, true));
+
+			//if the file is found and opened successful, the remain try block code is executed
+			//this print statement writes the borrowed values to the file, separated by tabs
+			filePW.printf("%n%d\t%s\t%f\t%d\t%f", borrowedItemID, borrowedItemName,
+					borrowedItemPrice, borrowedQuantity, borrowedOrderCost);
+
+			//set flag to "found"
+			fileFoundFlag = false;
+			//close the PrintWriter/File
+			filePW.close();
+		} //END OF try
+		//catch block 
+		catch (IOException ex) 
+		{
+			//if try has problem, set the |error| flag
+			fileFoundFlag = false;
+		}//END OF catch	
+	}//END OF setWriteOneRecord
+
+	//getters//
+
+	//this behavior will  get File Found Flag
+	public boolean getFileFoundFlag()
+	{
+		return fileFoundFlag;//return value to the calling method
+	}//END OF getFileFoundFlag
+
+	//this behavior will  get File name
+	public String getFileName()
+	{
+		return masterFileName;//return value to the calling method
+	}//END OF getFileName
+
+	//this behavior will return the value of record counts
+	public int getRecordCount()
+	{
+		return recordCount; //return value to the calling method
+	}//END OF getRecordCount
+
+}//END OF class WriteOrders
